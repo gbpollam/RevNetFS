@@ -158,7 +158,7 @@ def main():
     model.add(ActivationLayer('softmax'))
 
     model.set_loss(tf.keras.losses.BinaryCrossentropy())
-    model.fit(x_train, y_train_hot, epochs=2, learning_rate=0.1)
+    model.fit(x_train, y_train_hot, batch_size=32, epochs=2, learning_rate=0.1)
 
     predictions = model.predict(x_test)
     true_preds = []

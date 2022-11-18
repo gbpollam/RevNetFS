@@ -67,6 +67,43 @@ class NeuralNetwork:
                     last = False
             print("Epoch Loss: ", tot_loss)
 
+    def minibatch_gd(self, x_train, y_train, batch_size, epochs, learning_rate):
+        for epoch in range(epochs):
+            x_train = tf.random.shuffle(x_train)
+            tot_loss = 0
+            # tqdm(range(x_train.get_shape()[0]), desc=("Training epoch ", epoch, " of ", epochs))
+            print("Training epoch ", (epoch+1), " of ", epochs, ":")
+            for i in tqdm(range(x_train.get_shape()[0])):
+                # Forward Pass
+                self.inputs = {}
+                output = x_train[i]
+                target = y_train[i]
+                for layer in self.layers:
+                    if layer.needs_inputs():
+                        self.inputs[layer.id] = output
+                    output = layer.forward(output)
+
+                # Backward Pass
+                loss = self.loss(target, output).numpy()
+
+                tot_loss += loss
+
+                if math.isnan(tot_loss):
+                    print("Iteration: ", i)
+                    raise AssertionError
+
+                # TODO: This works only with softmax as last layer, make it general
+                last = True
+                for layer in reversed(self.layers):
+                    if last:
+                        loss = layer.batch_backward(self.inputs[layer.id], target, learning_rate, batch_size)
+                    elif layer.needs_inputs():
+                        loss = layer.batch_backward(self.inputs[layer.id], loss, learning_rate, batch_size)
+                    else:
+                        loss = layer.batch_backward_ni(loss, learning_rate, batch_size)
+                    last = False
+            print("Epoch Loss: ", tot_loss)
+
     # WIP
     def split_val(self, x_train, y_train, validation_split):
         tot_data = tf.shape(x_train)[0]
@@ -87,4 +124,4 @@ class NeuralNetwork:
         if batch_size == 1:
             return self.sgd(x_train, y_train, epochs, learning_rate)
         else:
-            raise NotImplementedError("Not yet implemented!")
+            return self.minibatch_gd(x_train, y_train, batch_size, epochs, learning_rate)

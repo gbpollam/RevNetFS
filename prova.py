@@ -74,27 +74,44 @@ print(y_train)
 print(x_val)
 print(y_val)'''
 
-output = tf.constant(
-[[9.49871182e-01],
- [1.00511024e-04],
- [3.41062841e-04],
- [1.25845708e-02],
- [1.04204802e-04],
- [3.69983912e-02]])
+'''
+input_channels = 3
+kernel_size=3
+num_filters=4
+stride=1
 
-target = tf.constant(
-[[0.],
- [0.],
- [0.],
- [0.],
- [0.],
- [1.]])
+input = tf.random.normal([20,3], mean=0, stddev=2)
+weights = tf.random.normal([num_filters*input_channels, kernel_size, 1], mean=0, stddev=stddev)
 
-output1 = tf.expand_dims(output, axis=0)
-output2 = tf.expand_dims(output, axis=0)
-output3 = tf.expand_dims(output, axis=0)
+'''
+print(800 // 31)
 
-final_output = tf.concat([output1,output2,output3], axis=0)
 
-print(final_output)
+input = tf.random.normal([17, 6], mean=0, stddev=5)
 
+window_size = 2
+count = 0
+dump = []
+dump_res = []
+for i in range(input.get_shape()[0]):
+    count += 1
+    dump.append(input[i])
+    if count == window_size:
+        if i >= (input.get_shape()[0] - window_size):
+            for j in range(i, (input.get_shape()[0])):
+                dump.append(input[j])
+        dump_res.append(tf.reduce_mean(dump, axis=0))
+        dump = []
+        count = 0
+
+print(tf.stack(dump_res, axis=0))
+
+a_gradient = tf.random.normal([17, 6], mean=0, stddev=5)
+
+dump = []
+for i in range(a_gradient.get_shape()[0] - 1):
+    for j in range(window_size):
+        dump.append(tf.math.divide(a_gradient[i], window_size))
+for k in range(window_size + (a_gradient.get_shape()[0] % window_size)):
+    dump.append(tf.math.divide(a_gradient[i], window_size + (a_gradient.get_shape()[0] % window_size)))
+print(tf.stack(dump, axis=0))

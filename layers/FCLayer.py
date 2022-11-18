@@ -16,6 +16,8 @@ class FCLayer(Layer):
         else:
             raise NotImplementedError(initialization, " initialization not implemented")
         self.b = tf.zeros([units, 1])
+        self.w_gradient_saved = None
+        self.b_gradient_saved = None
 
     def forward(self, input):
         return tf.matmul(self.W, input, transpose_a=True) + self.b
@@ -34,5 +36,33 @@ class FCLayer(Layer):
         x_gradient = tf.clip_by_value(x_gradient, -10, 10)
 
         self.gradient_descent(w_gradient, b_gradient, learning_rate)
+
+        return x_gradient
+
+    def batch_backward(self, input, a_gradient, learning_rate, batch_size):
+        w_gradient = tf.matmul(input, a_gradient, transpose_b=True)
+        b_gradient = a_gradient
+        x_gradient = tf.matmul(self.W, a_gradient)
+
+        w_gradient = tf.clip_by_value(w_gradient, -10, 10)
+        b_gradient = tf.clip_by_value(b_gradient, -10, 10)
+        x_gradient = tf.clip_by_value(x_gradient, -10, 10)
+
+        if self.w_gradient_saved is None:
+            self.w_gradient_saved = w_gradient
+        else:
+            self.w_gradient_saved = tf.math.add(w_gradient, self.w_gradient_saved)
+        if self.b_gradient_saved is None:
+            self.b_gradient_saved = b_gradient
+        else:
+            self.b_gradient_saved = tf.math.add(b_gradient, self.b_gradient_saved)
+
+        self.batch_counter += 1
+
+        if self.batch_counter == (batch_size-1):
+            self.batch_counter = 0
+            self.gradient_descent(w_gradient, b_gradient, learning_rate)
+            self.w_gradient_saved = None
+            self.b_gradient_saved = None
 
         return x_gradient
