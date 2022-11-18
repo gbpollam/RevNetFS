@@ -26,12 +26,13 @@ class NeuralNetwork:
         for i in range(input_data.get_shape()[0]):
             output = input_data[i]
             for layer in self.layers:
-                output = layer.forward_propagation(output)
+                output = layer.forward(output)
             outputs.append(output)
         return outputs
 
     def sgd(self, x_train, y_train, epochs, learning_rate):
         for epoch in range(epochs):
+            x_train = tf.random.shuffle(x_train)
             tot_loss = 0
             # tqdm(range(x_train.get_shape()[0]), desc=("Training epoch ", epoch, " of ", epochs))
             print("Training epoch ", (epoch+1), " of ", epochs, ":")
@@ -59,8 +60,10 @@ class NeuralNetwork:
                 for layer in reversed(self.layers):
                     if last:
                         loss = layer.backward(self.inputs[layer.id], target, learning_rate)
-                    else:
+                    elif layer.needs_inputs():
                         loss = layer.backward(self.inputs[layer.id], loss, learning_rate)
+                    else:
+                        loss = layer.backward_ni(loss, learning_rate)
                     last = False
             print("Epoch Loss: ", tot_loss)
 

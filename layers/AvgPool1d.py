@@ -4,7 +4,7 @@ import numpy as np
 from layers.Layer import Layer
 
 
-class ActivationLayer(Layer):
+class AvgPool1d(Layer):
     def __init__(self,
                  window_size, stride, padding):
         super().__init__()
@@ -15,6 +15,6 @@ class ActivationLayer(Layer):
     def forward(self, input):
         return tf.nn.avg_pool1d(input, self.window_size, self.stride, self.padding)
 
-    def backward(self):
+    def backward_ni(self, a_gradient, learning_rate):
         pass
 

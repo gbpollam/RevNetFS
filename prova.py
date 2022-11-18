@@ -90,10 +90,11 @@ target = tf.constant(
  [0.],
  [1.]])
 
-print(target)
-print(output)
+output1 = tf.expand_dims(output, axis=0)
+output2 = tf.expand_dims(output, axis=0)
+output3 = tf.expand_dims(output, axis=0)
 
-loss = tf.keras.losses.BinaryCrossentropy()
-print(loss(output, target))
-print(loss(output, target).numpy())
+final_output = tf.concat([output1,output2,output3], axis=0)
+
+print(final_output)
 

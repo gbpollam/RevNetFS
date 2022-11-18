@@ -86,6 +86,14 @@ def create_segments_and_labels(df, time_steps, step, label_name):
     return reshaped_segments, labels
 
 
+def normalize(df_train):
+    df_train['x-axis'] = df_train['x-axis'] / df_train['x-axis'].max()
+    df_train['y-axis'] = df_train['y-axis'] / df_train['y-axis'].max()
+    df_train['z-axis'] = df_train['z-axis'] / df_train['z-axis'].max()
+    # Round numbers
+    df_train = df_train.round({'x-axis': 4, 'y-axis': 4, 'z-axis': 4})
+    return df_train
+
 def main():
     # Load data set containing all the data from csv
     df = read_data('dataset/WISDM_ar_v1.1_raw.txt')
@@ -101,37 +109,44 @@ def main():
     df_test = df[df['user-id'] > 28]
     df_train = df[df['user-id'] <= 28]
 
-    df_train['x-axis'] = df_train['x-axis'] / df_train['x-axis'].max()
-    df_train['y-axis'] = df_train['y-axis'] / df_train['y-axis'].max()
-    df_train['z-axis'] = df_train['z-axis'] / df_train['z-axis'].max()
-    # Round numbers
-    df_train = df_train.round({'x-axis': 4, 'y-axis': 4, 'z-axis': 4})
+    df_train = normalize(df_train)
+    df_test = normalize(df_test)
 
     x_train, y_train = create_segments_and_labels(df_train,
                                                   TIME_PERIODS,
                                                   STEP_DISTANCE,
                                                   LABEL)
 
-    # Set input & output dimensions
-    num_time_periods, num_sensors = x_train.shape[1], x_train.shape[2]
-    num_classes = le.classes_.size
+    x_test, y_test = create_segments_and_labels(df_test,
+                                                  TIME_PERIODS,
+                                                  STEP_DISTANCE,
+                                                  LABEL)
 
-    input_shape = x_train.shape
+    # Set input & output dimensions
+    num_classes = le.classes_.size
 
     x_train = x_train.astype('float32')
     y_train = y_train.astype('float32')
+    x_test = x_train.astype('float32')
+    y_test = y_train.astype('float32')
 
     # TODO: add other dimensions
     x_train = np.concatenate((x_train[:, :, 0], x_train[:, :, 1], x_train[:, :, 2]), axis=1)
+    x_test = np.concatenate((x_test[:, :, 0], x_test[:, :, 1], x_test[:, :, 2]), axis=1)
 
     y_train_hot = np_utils.to_categorical(y_train, num_classes)
+    y_test_hot = np_utils.to_categorical(y_test, num_classes)
 
     # Transform data into tensors
     x_train = tf.convert_to_tensor(x_train)
     y_train_hot = tf.convert_to_tensor(y_train_hot)
+    x_test = tf.convert_to_tensor(x_test)
+    y_test_hot = tf.convert_to_tensor(y_test_hot)
 
     x_train = tf.expand_dims(x_train, axis=2)
     y_train_hot = tf.expand_dims(y_train_hot, axis=2)
+    x_test = tf.expand_dims(x_test, axis=2)
+    y_test_hot = tf.expand_dims(y_test_hot, axis=2)
 
     # Instantiate and train the model
     model = NeuralNetwork()
@@ -143,7 +158,18 @@ def main():
     model.add(ActivationLayer('softmax'))
 
     model.set_loss(tf.keras.losses.BinaryCrossentropy())
-    model.fit(x_train, y_train_hot, learning_rate=0.1)
+    model.fit(x_train, y_train_hot, epochs=2, learning_rate=0.1)
+
+    predictions = model.predict(x_test)
+    true_preds = []
+    for i in range(len(predictions)):
+        if tf.math.argmax(predictions[i]) == tf.math.argmax(y_test_hot[i]):
+            true_preds.append(1)
+        else:
+            true_preds.append(0)
+
+    print("Accuracy on test data: ", sum(true_preds)/len(true_preds))
+
 
 
 if __name__ == "__main__":
