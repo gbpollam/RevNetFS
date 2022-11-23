@@ -28,5 +28,6 @@ class Layer:
     def set_id(self, id):
         self.id = id
 
+    # Needs to be overridden for layers that don't need hte input (and thus implement backward_ni)
     def needs_inputs(self):
         return True

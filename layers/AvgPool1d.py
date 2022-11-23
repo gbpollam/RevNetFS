@@ -7,7 +7,9 @@ from layers.Layer import Layer
 # TODO: Implement the version with the stride and padding, now it uses only window_size
 class AvgPool1d(Layer):
     def __init__(self,
-                 window_size, stride, padding):
+                 window_size=2,
+                 stride=1,
+                 padding='same'):
         super().__init__()
         self.window_size = window_size
         self.stride = stride
@@ -33,10 +35,15 @@ class AvgPool1d(Layer):
 
     def backward_ni(self, a_gradient, learning_rate):
         dump = []
-        for i in range(self.target_length - 1):
+        for i in range(a_gradient.get_shape()[0] - 1):
             for j in range(self.window_size):
                 dump.append(tf.math.divide(a_gradient[i], self.window_size))
-        for k in range (self.window_size + (self.target_length % self.window_size)):
-            dump.append(tf.math.divide(a_gradient[i], self.window_size + (a_gradient.get_shape()[0] % self.window_size)))
-        return tf.stack(dump, axis=0) # TODO: Needs to be fixed
+        missing = self.target_length - len(dump)
+        for k in range(missing):
+            dump.append(tf.math.divide(a_gradient[a_gradient.get_shape()[0] - 1], missing))
+        return tf.stack(dump, axis=0)
+
+    def needs_inputs(self):
+        return False
+
 

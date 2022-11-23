@@ -18,6 +18,7 @@ class FCLayer(Layer):
         self.b = tf.zeros([units, 1])
         self.w_gradient_saved = None
         self.b_gradient_saved = None
+        self.batch_counter = 0
 
     def forward(self, input):
         return tf.matmul(self.W, input, transpose_a=True) + self.b
@@ -61,7 +62,7 @@ class FCLayer(Layer):
 
         if self.batch_counter == (batch_size-1):
             self.batch_counter = 0
-            self.gradient_descent(w_gradient, b_gradient, learning_rate)
+            self.gradient_descent(tf.divide(w_gradient, batch_size), tf.divide(b_gradient, batch_size), learning_rate)
             self.w_gradient_saved = None
             self.b_gradient_saved = None
 

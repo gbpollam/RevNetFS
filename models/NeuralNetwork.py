@@ -58,6 +58,7 @@ class NeuralNetwork:
                 # TODO: This works only with softmax as last layer, make it general
                 last = True
                 for layer in reversed(self.layers):
+                    print(layer.id)
                     if last:
                         loss = layer.backward(self.inputs[layer.id], target, learning_rate)
                     elif layer.needs_inputs():
@@ -82,6 +83,8 @@ class NeuralNetwork:
                     if layer.needs_inputs():
                         self.inputs[layer.id] = output
                     output = layer.forward(output)
+                    print("Ended layer ", layer.id, " forward, output size:")
+                    print(output.get_shape())
 
                 # Backward Pass
                 loss = self.loss(target, output).numpy()
@@ -102,6 +105,8 @@ class NeuralNetwork:
                     else:
                         loss = layer.batch_backward_ni(loss, learning_rate, batch_size)
                     last = False
+                    print("Ended layer ", layer.id, " backward, output size:")
+                    print(loss.get_shape())
             print("Epoch Loss: ", tot_loss)
 
     # WIP

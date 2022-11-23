@@ -8,6 +8,9 @@ from keras.utils import np_utils
 from models.NeuralNetwork import NeuralNetwork
 from layers.FCLayer import FCLayer
 from layers.ActivationLayer import ActivationLayer
+from layers.AvgPool1d import AvgPool1d
+from layers.ConvLayer import ConvLayer
+from layers.GAPLayer import GAPLayer
 
 # Set some standard parameters upfront
 pd.options.display.float_format = '{:.1f}'.format
@@ -75,7 +78,7 @@ def create_segments_and_labels(df, time_steps, step, label_name):
         ys = df['y-axis'].values[i: i + time_steps]
         zs = df['z-axis'].values[i: i + time_steps]
         # Retrieve the most often used label in this segment
-        label = stats.mode(df[label_name].iloc[i: i + time_steps])[0][0]
+        label = stats.mode(df[label_name].iloc[i: i + time_steps], keepdims=True)[0][0]
         segments.append([xs, ys, zs])
         labels.append(label)
 
@@ -130,9 +133,11 @@ def main():
     x_test = x_train.astype('float32')
     y_test = y_train.astype('float32')
 
-    # TODO: add other dimensions
+    # This is for when I used just FC Network (and I needed 1d input)
+    '''
     x_train = np.concatenate((x_train[:, :, 0], x_train[:, :, 1], x_train[:, :, 2]), axis=1)
     x_test = np.concatenate((x_test[:, :, 0], x_test[:, :, 1], x_test[:, :, 2]), axis=1)
+    '''
 
     y_train_hot = np_utils.to_categorical(y_train, num_classes)
     y_test_hot = np_utils.to_categorical(y_test, num_classes)
@@ -143,18 +148,35 @@ def main():
     x_test = tf.convert_to_tensor(x_test)
     y_test_hot = tf.convert_to_tensor(y_test_hot)
 
+    # Again needed only when 1d input
+    '''
     x_train = tf.expand_dims(x_train, axis=2)
-    y_train_hot = tf.expand_dims(y_train_hot, axis=2)
     x_test = tf.expand_dims(x_test, axis=2)
+    '''
+    y_train_hot = tf.expand_dims(y_train_hot, axis=2)
     y_test_hot = tf.expand_dims(y_test_hot, axis=2)
 
     # Instantiate and train the model
+    '''
     model = NeuralNetwork()
     model.add(FCLayer(32, 60))
     model.add(ActivationLayer('relu'))
     model.add(FCLayer(16, 32))
     model.add(ActivationLayer('relu'))
     model.add(FCLayer(6, 16))
+    model.add(ActivationLayer('softmax'))
+    '''
+
+    model = NeuralNetwork()
+    model.add(ConvLayer(input_shape=(20, 3), kernel_size=3, num_filters=32, stride=1))
+    model.add(ActivationLayer('relu'))
+    model.add(AvgPool1d(window_size=2))
+    model.add(ConvLayer(input_shape=(9, 32), kernel_size=3, num_filters=64, stride=1))
+    model.add(AvgPool1d(window_size=2))
+    model.add(GAPLayer())
+    model.add(FCLayer(units=50, input_dim=64))
+    model.add(ActivationLayer('relu'))
+    model.add(FCLayer(units=6, input_dim=50))
     model.add(ActivationLayer('softmax'))
 
     model.set_loss(tf.keras.losses.BinaryCrossentropy())
