@@ -159,26 +159,20 @@ else:
     raise NotImplementedError("Only VALID and SAME padding implemented!")
 biases = tf.constant(0.01, shape=(output_shape, num_filters))
 
-input = tf.expand_dims(input, axis=0)
-output1 = tf.nn.conv1d(input=input, filters=weights, stride=stride, padding=padding)
-output2 = tf.nn.convolution(input=input, filters=weights, strides=stride, padding=padding)
 
 
-# Prova Backpropagation
+
+
+biases = tf.constant(0.01, shape=(1, 32))
+output_shape = 7
+
+stacked_biases = tf.repeat(biases, repeats=[output_shape], axis=0)
+
 a_gradient = tf.random.normal([7, 64], mean=0, stddev=5)
-a_gradient = tf.expand_dims(a_gradient, axis=0)
 
-input = tf.random.normal([9, 32], mean=0, stddev=5)
-input = tf.expand_dims(input, axis=0)
+print(a_gradient)
+print(a_gradient[0,1].numpy())
 
-paddings = ([0, 0], [2, 2], [0, 0])
-a_gradient_padded = tf.pad(a_gradient, paddings, "CONSTANT")
+b_gradient = tf.expand_dims(tf.reduce_sum(a_gradient, axis=0), axis=0)
 
-weights = tf.random.normal([3, 32, 64], mean=0, stddev=stddev)
-
-flipped_weights = tf.transpose(weights, [0, 2, 1])
-
-output = tf.nn.convolution(input=a_gradient_padded, filters=flipped_weights, strides=stride, padding=padding)
-output2 = tf.nn.convolution(input=a_gradient, filters=input, strides=stride, padding='SAME', dilations=1)
-
-print(output2)
+my_shape = (2,3,4)
