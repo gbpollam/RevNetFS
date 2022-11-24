@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
 import math
+import time
 
 
 class NeuralNetwork:
@@ -14,7 +15,7 @@ class NeuralNetwork:
     # add layer to network
     def add(self, layer):
         self.layers.append(layer)
-        layer.set_id(len(self.layers) + 1)
+        layer.set_id(len(self.layers))
 
     # set loss to use
     def set_loss(self, loss):
@@ -58,7 +59,6 @@ class NeuralNetwork:
                 # TODO: This works only with softmax as last layer, make it general
                 last = True
                 for layer in reversed(self.layers):
-                    print(layer.id)
                     if last:
                         loss = layer.backward(self.inputs[layer.id], target, learning_rate)
                     elif layer.needs_inputs():
@@ -80,9 +80,13 @@ class NeuralNetwork:
                 output = x_train[i]
                 target = y_train[i]
                 for layer in self.layers:
+                    # start = time.time()
                     if layer.needs_inputs():
                         self.inputs[layer.id] = output
                     output = layer.forward(output)
+                    # end = time.time()
+                    # print("Forward time for layer ", layer.id)
+                    # print(end - start)
 
                 # Backward Pass
                 loss = self.loss(target, output).numpy()
@@ -96,6 +100,7 @@ class NeuralNetwork:
                 # TODO: This works only with softmax as last layer, make it general
                 last = True
                 for layer in reversed(self.layers):
+                    # start = time.time()
                     if last:
                         loss = layer.batch_backward(self.inputs[layer.id], target, learning_rate, batch_size)
                     elif layer.needs_inputs():
@@ -103,6 +108,9 @@ class NeuralNetwork:
                     else:
                         loss = layer.batch_backward_ni(loss, learning_rate, batch_size)
                     last = False
+                    # end = time.time()
+                    # print("Backward time for layer ", layer.id)
+                    # print(end - start)
             print("Epoch Loss: ", tot_loss)
 
     # WIP

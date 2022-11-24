@@ -3,8 +3,9 @@ import math
 import tensorflow as tf
 import numpy as np
 
-from layers.Layer import Layer
+import time
 
+from layers.Layer import Layer
 
 class ConvLayer(Layer):
     def __init__(self,
@@ -56,11 +57,33 @@ class ConvLayer(Layer):
 
     # TODO: Check whether it is correct even for other cases of stride
     def backward(self, input, a_gradient, learning_rate):
-        b_gradient = a_gradient
+        # Compute the b_gradient
+        b_gradient = tf.expand_dims(tf.reduce_sum(a_gradient, axis=0), axis=0)
+
+        # Compute the w_gradient (for now crudely with numpy)
+        my_shape = (self.kernel_size, self.input_channels, self.num_filters)
+        w_gradient = np.zeros(shape=my_shape)
+        a_gradient_arr = tf.make_ndarray(tf.make_tensor_proto(a_gradient))
+        input_arr = tf.make_ndarray(tf.make_tensor_proto(input))
+        for n in range(my_shape[0]):
+            for i in range(my_shape[1]):
+                for q in range(my_shape[2]):
+                    sum = 0
+                    for m in range(self.input_shape[0] - self.kernel_size + 1):
+                        # sum += a_gradient[m, q].numpy() * input[m+n-1, i].numpy()
+                        sum += a_gradient_arr[m, q] * input_arr[m + n - 1, i]
+                    w_gradient[n, i, q] = sum
+
+        w_gradient = tf.convert_to_tensor(w_gradient, dtype=float)
+
+        # Compute the x_gradient
         a_gradient = tf.expand_dims(a_gradient, axis=0)
+        paddings = ([0, 0], [2, 2], [0, 0])
         x_gradient = tf.squeeze(
-            tf.nn.conv1d(input=a_gradient, filters=self.weights, stride=self.stride, padding='SAME'))
-        w_gradient = tf.squeeze(tf.nn.conv1d(input=a_gradient, filters=input, stride=self.stride, padding='SAME'))
+            tf.nn.convolution(input=tf.pad(a_gradient, paddings, "CONSTANT"),
+                              filters=tf.transpose(self.weights, [0, 2, 1]),
+                              strides=self.stride,
+                              padding=self.padding))
 
         w_gradient = tf.clip_by_value(w_gradient, -10, 10)
         b_gradient = tf.clip_by_value(b_gradient, -10, 10)
@@ -77,15 +100,18 @@ class ConvLayer(Layer):
         # Compute the w_gradient (for now crudely with numpy)
         my_shape = (self.kernel_size, self.input_channels, self.num_filters)
         w_gradient = np.zeros(shape=my_shape)
+        a_gradient_arr = tf.make_ndarray(tf.make_tensor_proto(a_gradient))
+        input_arr = tf.make_ndarray(tf.make_tensor_proto(input))
         for n in range(my_shape[0]):
             for i in range(my_shape[1]):
                 for q in range(my_shape[2]):
                     sum = 0
                     for m in range(self.input_shape[0] - self.kernel_size + 1):
-                        sum += a_gradient[m, q].numpy() * input[m+n-1, i].numpy()
+                        # sum += a_gradient[m, q].numpy() * input[m+n-1, i].numpy()
+                        sum += a_gradient_arr[m, q] * input_arr[m + n - 1, i]
                     w_gradient[n, i, q] = sum
 
-        w_gradient = tf.convert_to_tensor(w_gradient)
+        w_gradient = tf.convert_to_tensor(w_gradient, dtype=float)
 
         #Compute the x_gradient
         a_gradient = tf.expand_dims(a_gradient, axis=0)
