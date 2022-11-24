@@ -139,7 +139,7 @@ class ConvLayer(Layer):
 
         if self.batch_counter == (batch_size - 1):
             self.batch_counter = 0
-            self.gradient_descent(tf.divide(w_gradient, batch_size), tf.divide(b_gradient, batch_size), learning_rate)
+            self.gradient_descent(tf.divide(self.w_gradient_saved, batch_size), tf.divide(self.b_gradient_saved, batch_size), learning_rate)
             self.w_gradient_saved = None
             self.b_gradient_saved = None
 
