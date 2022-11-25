@@ -170,9 +170,18 @@ stacked_biases = tf.repeat(biases, repeats=[output_shape], axis=0)
 
 a_gradient = tf.random.normal([7, 64], mean=0, stddev=5)
 
-print(a_gradient)
-print(a_gradient[0,1].numpy())
+x = tf.random.normal([10, 20, 3], mean=0, stddev=5)
+y = tf.random.normal([10, 1], mean=0, stddev=5)
 
-b_gradient = tf.expand_dims(tf.reduce_sum(a_gradient, axis=0), axis=0)
+indices = tf.range(start=0, limit=tf.shape(x)[0], dtype=tf.int32)
+shuffled_indices = tf.random.shuffle(indices)
 
-my_shape = (2,3,4)
+print(x)
+print(y)
+
+x = tf.gather(x, shuffled_indices)
+y = tf.gather(y, shuffled_indices)
+
+print(x)
+print(y)
+

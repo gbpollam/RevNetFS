@@ -70,7 +70,11 @@ class NeuralNetwork:
 
     def minibatch_gd(self, x_train, y_train, batch_size, epochs, learning_rate):
         for epoch in range(epochs):
-            x_train = tf.random.shuffle(x_train)
+
+            indices = tf.range(start=0, limit=tf.shape(x_train)[0], dtype=tf.int32)
+            shuffled_indices = tf.random.shuffle(indices)
+            x_train = tf.gather(x_train, shuffled_indices)
+            y_train = tf.gather(y_train, shuffled_indices)
             tot_loss = 0
             # tqdm(range(x_train.get_shape()[0]), desc=("Training epoch ", epoch, " of ", epochs))
             print("Training epoch ", (epoch+1), " of ", epochs, ":")
