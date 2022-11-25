@@ -24,7 +24,8 @@ class NeuralNetwork:
     # predict output for given input
     def predict(self, input_data):
         outputs = []
-        for i in range(input_data.get_shape()[0]):
+        print("Computing test data outputs:")
+        for i in tqdm(range(input_data.get_shape()[0])):
             output = input_data[i]
             for layer in self.layers:
                 output = layer.forward(output)
