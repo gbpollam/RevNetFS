@@ -136,7 +136,7 @@ output = tf.squeeze(output)
 output += biases
 print(output)
 '''
-
+'''
 input = tf.random.normal([20, 3], mean=0, stddev=5)
 
 kernel_size = 3
@@ -184,4 +184,46 @@ y = tf.gather(y, shuffled_indices)
 
 print(x)
 print(y)
+'''
 
+from keras import layers
+import keras
+from models.NeuralNetwork import NeuralNetwork
+from layers.FCLayer import FCLayer
+from layers.ActivationLayer import ActivationLayer
+from layers.AvgPool1d import AvgPool1d
+from layers.ConvLayer import ConvLayer
+from layers.GAPLayer import GAPLayer
+
+tf.random.set_seed(1234)
+
+model_keras = keras.Sequential()
+model_keras.add(keras.Input(shape=(20, 3)))
+kernel_initializer = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.05, seed=None)
+bias_initializer = tf.keras.initializers.Constant(value=0.01)
+model_keras.add(layers.Conv1D(filters=32, kernel_size=3,
+                              kernel_initializer=kernel_initializer,
+                              bias_initializer=bias_initializer))
+
+
+
+# Print output of each layer of model_keras
+feature_extractor = tf.keras.Model(
+    inputs = model_keras.input,
+    outputs = [layer.output for layer in model_keras.layers]
+)
+
+test = tf.random.normal([20, 3], mean=0, stddev=5)
+test_expanded = tf.expand_dims(test, axis=0)
+layer_outs = feature_extractor(test_expanded)
+
+Conv = ConvLayer(input_shape=(20, 3), kernel_size=3, num_filters=32, stride=1)
+Conv.set_weights(model_keras.weights[0])
+output = Conv.forward(test)
+output = tf.expand_dims(output, axis=0)
+
+print(layer_outs)
+print(output)
+print(layer_outs-output)
+# print(model_keras.weights[0])
+# Conv.print_weights()

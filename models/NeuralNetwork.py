@@ -139,3 +139,19 @@ class NeuralNetwork:
             return self.sgd(x_train, y_train, epochs, learning_rate)
         else:
             return self.minibatch_gd(x_train, y_train, batch_size, epochs, learning_rate)
+
+    def print_outputs(self, input):
+        outputs = []
+        output = input
+        for layer in self.layers:
+            output = layer.forward(output)
+            outputs.append(output)
+        print(outputs)
+
+    def return_outputs(self, input):
+        outputs = []
+        output = input
+        for layer in self.layers:
+            output = layer.forward(output)
+            outputs.append(output)
+        return outputs

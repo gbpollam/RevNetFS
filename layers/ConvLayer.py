@@ -3,6 +3,8 @@ import math
 import tensorflow as tf
 import numpy as np
 
+tf.random.set_seed(1234)
+
 import time
 
 from layers.Layer import Layer
@@ -24,6 +26,7 @@ class ConvLayer(Layer):
 
         # Initialize weights (Xavier)
         stddev = math.sqrt(2./(kernel_size*num_filters))
+        # stddev = 0.05
         # self.weights = tf.random.normal([num_filters*input_channels, kernel_size, 1], mean=0, stddev=stddev)
         self.weights = tf.random.normal([kernel_size, self.input_channels, num_filters], mean=0, stddev=stddev)
 
@@ -145,4 +148,8 @@ class ConvLayer(Layer):
 
         return x_gradient
 
+    def print_weights(self):
+        print(self.weights)
 
+    def set_weights(self, weights):
+        self.weights = weights

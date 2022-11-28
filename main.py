@@ -1,9 +1,12 @@
+import keras
 import tensorflow as tf
+from keras import layers
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 from scipy import stats
 from keras.utils import np_utils
+
 
 from models.NeuralNetwork import NeuralNetwork
 from layers.FCLayer import FCLayer
@@ -11,6 +14,9 @@ from layers.ActivationLayer import ActivationLayer
 from layers.AvgPool1d import AvgPool1d
 from layers.ConvLayer import ConvLayer
 from layers.GAPLayer import GAPLayer
+
+tf.random.set_seed(1234)
+
 
 # Set some standard parameters upfront
 pd.options.display.float_format = '{:.1f}'.format
@@ -130,8 +136,8 @@ def main():
 
     x_train = x_train.astype('float32')
     y_train = y_train.astype('float32')
-    x_test = x_train.astype('float32')
-    y_test = y_train.astype('float32')
+    x_test = x_test.astype('float32')
+    y_test = y_test.astype('float32')
 
     # This is for when I used just FC Network (and I needed 1d input)
     '''
@@ -180,7 +186,8 @@ def main():
     model.add(ActivationLayer('softmax'))
 
     model.set_loss(tf.keras.losses.BinaryCrossentropy())
-    model.fit(x_train, y_train_hot, batch_size=32, epochs=2, learning_rate=0.1)
+
+    model.fit(x_train, y_train_hot, batch_size=32, epochs=1, learning_rate=0.1)
 
     predictions = model.predict(x_test)
     true_preds = []
