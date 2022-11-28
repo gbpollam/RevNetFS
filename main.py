@@ -180,9 +180,9 @@ def main():
     model.add(ConvLayer(input_shape=(9, 32), kernel_size=3, num_filters=64, stride=1))
     model.add(AvgPool1d(window_size=2))
     model.add(GAPLayer())
-    model.add(FCLayer(units=50, input_dim=64))
-    model.add(ActivationLayer('relu'))
-    model.add(FCLayer(units=6, input_dim=50))
+    # model.add(FCLayer(units=50, input_dim=64))
+    # model.add(ActivationLayer('relu'))
+    model.add(FCLayer(units=6, input_dim=64))
     model.add(ActivationLayer('softmax'))
 
     model.set_loss(tf.keras.losses.BinaryCrossentropy())

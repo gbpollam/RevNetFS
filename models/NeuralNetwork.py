@@ -84,14 +84,18 @@ class NeuralNetwork:
                 self.inputs = {}
                 output = x_train[i]
                 target = y_train[i]
+                # fw_times = []
                 for layer in self.layers:
-                    # start = time.time()
+                    start = time.time()
                     if layer.needs_inputs():
                         self.inputs[layer.id] = output
                     output = layer.forward(output)
                     # end = time.time()
                     # print("Forward time for layer ", layer.id)
                     # print(end - start)
+                    # fw_times.append(end-start)
+                # print("Maximum fw time:")
+                # print(np.argmax(fw_times))
 
                 # Backward Pass
                 loss = self.loss(target, output).numpy()
@@ -104,6 +108,7 @@ class NeuralNetwork:
 
                 # TODO: This works only with softmax as last layer, make it general
                 last = True
+                # bw_times = []
                 for layer in reversed(self.layers):
                     # start = time.time()
                     if last:
@@ -116,6 +121,9 @@ class NeuralNetwork:
                     # end = time.time()
                     # print("Backward time for layer ", layer.id)
                     # print(end - start)
+                    # bw_times.append(end-start)
+                # print("Maximum bw time:")
+                # print(np.argmax(bw_times))
             print("Epoch Loss: ", tot_loss)
 
     # WIP
