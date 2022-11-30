@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import math
+import time
 
 '''
 W = tf.random.normal([5, 4], mean=0, stddev=5)
@@ -136,8 +137,10 @@ output = tf.squeeze(output)
 output += biases
 print(output)
 '''
-'''
+tf.random.set_seed(42)
+np.random.seed(42)
 input = tf.random.normal([20, 3], mean=0, stddev=5)
+input_np = np.random.normal(loc=0, scale=5, size=(20, 3))
 
 kernel_size = 3
 num_filters = 32
@@ -150,6 +153,7 @@ padding = 'VALID'
 stddev = math.sqrt(2. / (kernel_size * num_filters))
 # self.weights = tf.random.normal([num_filters*input_channels, kernel_size, 1], mean=0, stddev=stddev)
 weights = tf.random.normal([kernel_size, input_channels, num_filters], mean=0, stddev=stddev)
+weights_np = np.random.normal(loc=0, scale=stddev, size=(kernel_size, input_channels, num_filters))
 
 if padding == 'VALID':
     output_shape = int(tf.math.ceil((input_shape[0] - kernel_size + 1) / stride).numpy())
@@ -158,11 +162,27 @@ elif padding == 'SAME':
 else:
     raise NotImplementedError("Only VALID and SAME padding implemented!")
 biases = tf.constant(0.01, shape=(output_shape, num_filters))
+biases_np = np.full(shape=(output_shape, num_filters), fill_value=0.01)
+
+times = []
+
+start = time.time()
+input = tf.expand_dims(input, axis=0)
+# The two versions give the same result
+# output = tf.nn.conv1d(input=input, filters=self.weights, stride=self.stride, padding=self.padding)
+output = tf.nn.convolution(input=input, filters=weights, strides=stride, padding=padding)
+output = tf.squeeze(output)
+stacked_biases = tf.repeat(biases, repeats=[output_shape], axis=0)
+output += stacked_biases
+end = time.time()
+times.append(end-start)
+
+start = time.time()
+output_np = np.convolve
 
 
 
-
-
+'''
 biases = tf.constant(0.01, shape=(1, 32))
 output_shape = 7
 
@@ -185,7 +205,8 @@ y = tf.gather(y, shuffled_indices)
 print(x)
 print(y)
 '''
-
+# Comparing the outputs of my conv layer and the keras one
+'''
 from keras import layers
 import keras
 from models.NeuralNetwork import NeuralNetwork
@@ -227,3 +248,4 @@ print(output)
 print(layer_outs-output)
 # print(model_keras.weights[0])
 # Conv.print_weights()
+'''

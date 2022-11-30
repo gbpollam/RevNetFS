@@ -37,7 +37,7 @@ def main():
     model = keras.Sequential()
     model.add(keras.Input(shape=(20, 3)))
     model.add(keras.layers.Conv1D(filters=16, kernel_size=3))
-    model.add(RevLayerKeras(in_channels=16))
+    model.add(RevLayerKeras(in_channels=16, proportion=.75))
     model.add(keras.layers.AveragePooling1D())
     model.add(keras.layers.GlobalAvgPool1D())
     model.add(keras.layers.Dense(units=6, activation='softmax'))
@@ -49,6 +49,10 @@ def main():
     model.fit(x_train, y_train_hot, epochs=1, batch_size=32)
 
     predictions = model.predict(x_test)
+
+    print("Check to samples:")
+    print(predictions[0])
+    print(y_test_hot[0])
 
     true_preds = []
 
