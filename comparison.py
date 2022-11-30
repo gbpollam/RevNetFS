@@ -33,13 +33,34 @@ def main():
     file_path = 'dataset/WISDM_ar_v1.1_raw.txt'
     x_train, y_train_hot, x_test, y_test_hot = prepare_data(file_path, TIME_PERIODS, STEP_DISTANCE)
 
-    # Define the keras model
+    # Define the proportion to be used when splitting channels in reversible layers
+    proportion = 0.5
+
+    # Define the keras model (Net1)
+    '''
     model = keras.Sequential()
     model.add(keras.Input(shape=(20, 3)))
     model.add(keras.layers.Conv1D(filters=16, kernel_size=3))
     model.add(RevLayerKeras(in_channels=16, proportion=.75))
     model.add(keras.layers.AveragePooling1D())
     model.add(keras.layers.GlobalAvgPool1D())
+    model.add(keras.layers.Dense(units=6, activation='softmax'))
+    '''
+
+    # Define the keras model (Net2)
+    model = keras.Sequential()
+    model.add(keras.Input(shape=(20, 3)))
+    model.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu'))
+    model.add(RevLayerKeras(in_channels=16, proportion=proportion))
+    model.add(RevLayerKeras(in_channels=16, proportion=proportion))
+    model.add(RevLayerKeras(in_channels=16, proportion=proportion))
+    model.add(keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu'))
+    model.add(RevLayerKeras(in_channels=32, proportion=proportion))
+    model.add(RevLayerKeras(in_channels=32, proportion=proportion))
+    model.add(RevLayerKeras(in_channels=32, proportion=proportion))
+    model.add(keras.layers.AveragePooling1D())
+    model.add(keras.layers.GlobalAvgPool1D())
+    model.add(keras.layers.Dense(units=16, activation='relu'))
     model.add(keras.layers.Dense(units=6, activation='softmax'))
 
     loss = tf.losses.CategoricalCrossentropy()
