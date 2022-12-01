@@ -63,17 +63,33 @@ def main():
     model.add(keras.layers.Dense(units=16, activation='relu'))
     model.add(keras.layers.Dense(units=6, activation='softmax'))
 
+    # Define the keras model (Net2)
+    model2 = keras.Sequential()
+    model2.add(keras.Input(shape=(20, 3)))
+    model2.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu'))
+    model2.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu', padding='same'))
+    model2.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu', padding='same'))
+    model2.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu', padding='same'))
+    model2.add(keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu'))
+    model2.add(keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu', padding='same'))
+    model2.add(keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu', padding='same'))
+    model2.add(keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu', padding='same'))
+    model2.add(keras.layers.AveragePooling1D())
+    model2.add(keras.layers.GlobalAvgPool1D())
+    model2.add(keras.layers.Dense(units=16, activation='relu'))
+    model2.add(keras.layers.Dense(units=6, activation='softmax'))
+
     loss = tf.losses.CategoricalCrossentropy()
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
 
-    model.compile(optimizer, loss=loss)
-    model.fit(x_train, y_train_hot, epochs=1, batch_size=32)
+    # model.compile(optimizer, loss=loss)
+    # model.fit(x_train, y_train_hot, epochs=1, batch_size=32)
 
-    predictions = model.predict(x_test)
+    model2.compile(optimizer, loss=loss)
+    model2.fit(x_train, y_train_hot, epochs=100, batch_size=64)
 
-    print("Check to samples:")
-    print(predictions[0])
-    print(y_test_hot[0])
+    # predictions = model.predict(x_test)
+    predictions = model2.predict(x_test)
 
     true_preds = []
 
