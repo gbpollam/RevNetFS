@@ -34,7 +34,8 @@ def read_data(file_path):
     # will show up as NAN
     df.dropna(axis=0, how='any', inplace=True)
 
-    df = df.sample(frac=1, random_state=1).reset_index()
+    # This line is wrong: one shouldn't shuffle the dataset before creating the segments
+    # df = df.sample(frac=1, random_state=1).reset_index()
 
     return df
 
