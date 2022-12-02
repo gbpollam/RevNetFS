@@ -69,7 +69,29 @@ def create_segments_and_labels(df, time_steps, step, label_name):
     return reshaped_segments, labels
 
 
-def fit_normalize(df_train):
+def fit_minmax(df_train):
+    x_max = df_train.loc[:, 'x-axis'].max()
+    y_max = df_train.loc[:, 'y-axis'].max()
+    z_max = df_train.loc[:, 'z-axis'].max()
+    x_min = df_train.loc[:, 'x-axis'].min()
+    y_min = df_train.loc[:, 'y-axis'].min()
+    z_min = df_train.loc[:, 'z-axis'].min()
+    df_train.loc[:, 'x-axis'] = (df_train.loc[:, 'x-axis'] - x_min)/(x_max-x_min)
+    df_train.loc[:, 'y-axis'] = (df_train.loc[:, 'y-axis'] - y_min)/(y_max-y_min)
+    df_train.loc[:, 'z-axis'] = (df_train.loc[:, 'z-axis'] - z_min)/(z_max-z_min)
+    minmax_list = [x_max, x_min, y_max, y_min, z_max, z_min]
+    return df_train, minmax_list
+
+
+def minmax(df_train, minmax_list):
+    df_train.loc[:, 'x-axis'] = (df_train.loc[:, 'x-axis'] - minmax_list[1]) / (minmax_list[0] - minmax_list[1])
+    df_train.loc[:, 'y-axis'] = (df_train.loc[:, 'y-axis'] - minmax_list[3]) / (minmax_list[2] - minmax_list[3])
+    df_train.loc[:, 'z-axis'] = (df_train.loc[:, 'z-axis'] - minmax_list[5]) / (minmax_list[4] - minmax_list[5])
+    return df_train
+
+
+
+def fit_gauss_rank(df_train):
     # Formerly minmax was used
     """
     df_train['x-axis'] = df_train['x-axis'] / df_train['x-axis'].max()
@@ -87,7 +109,7 @@ def fit_normalize(df_train):
     return df_train, scaler
 
 
-def normalize(df_train, scaler):
+def gauss_rank(df_train, scaler):
     # This is Gaussian Rank Scaling
     df_xyz_scaled = scaler.transform(df_train[['x-axis', 'y-axis', 'z-axis']])
     df_train.loc[:, 'x-axis'] = df_xyz_scaled[:, 0]
@@ -111,8 +133,8 @@ def prepare_data(file_path, time_periods, step_distance):
     df_test = df[df['user-id'] > 28]
     df_train = df[df['user-id'] <= 28]
 
-    df_train, scaler = fit_normalize(df_train)
-    df_test = normalize(df_test, scaler)
+    df_train, scaler = fit_minmax(df_train)
+    df_test = minmax(df_test, scaler)
 
     x_train, y_train = create_segments_and_labels(df_train,
                                                   time_periods,
