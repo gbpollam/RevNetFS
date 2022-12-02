@@ -7,6 +7,9 @@ from keras.utils import np_utils
 
 from utils.gauss_rank_scaler import GaussRankScaler
 
+pd.options.mode.chained_assignment = None
+
+
 def convert_to_float(x):
     try:
         return np.float64(x)
@@ -66,8 +69,8 @@ def create_segments_and_labels(df, time_steps, step, label_name):
     return reshaped_segments, labels
 
 
-def normalize(df_train):
-    # This is minmax
+def fit_normalize(df_train):
+    # Formerly minmax was used
     """
     df_train['x-axis'] = df_train['x-axis'] / df_train['x-axis'].max()
     df_train['y-axis'] = df_train['y-axis'] / df_train['y-axis'].max()
@@ -77,7 +80,19 @@ def normalize(df_train):
     """
     # This is Gaussian Rank Scaling
     scaler = GaussRankScaler()
-    df_train = scaler.fit_transform(df_train[['x_axis', 'y-axis', 'z-axis']])
+    df_xyz_scaled = scaler.fit_transform(df_train[['x-axis', 'y-axis', 'z-axis']])
+    df_train.loc[:, 'x-axis'] = df_xyz_scaled[:, 0]
+    df_train.loc[:, 'y-axis'] = df_xyz_scaled[:, 1]
+    df_train.loc[:, 'z-axis'] = df_xyz_scaled[:, 2]
+    return df_train, scaler
+
+
+def normalize(df_train, scaler):
+    # This is Gaussian Rank Scaling
+    df_xyz_scaled = scaler.transform(df_train[['x-axis', 'y-axis', 'z-axis']])
+    df_train.loc[:, 'x-axis'] = df_xyz_scaled[:, 0]
+    df_train.loc[:, 'y-axis'] = df_xyz_scaled[:, 1]
+    df_train.loc[:, 'z-axis'] = df_xyz_scaled[:, 2]
     return df_train
 
 
@@ -96,8 +111,8 @@ def prepare_data(file_path, time_periods, step_distance):
     df_test = df[df['user-id'] > 28]
     df_train = df[df['user-id'] <= 28]
 
-    df_train = normalize(df_train)
-    df_test = normalize(df_test)
+    df_train, scaler = fit_normalize(df_train)
+    df_test = normalize(df_test, scaler)
 
     x_train, y_train = create_segments_and_labels(df_train,
                                                   time_periods,
