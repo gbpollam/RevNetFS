@@ -5,6 +5,8 @@ import pandas as pd
 from sklearn import preprocessing
 from keras.utils import np_utils
 
+from utils.gauss_rank_scaler import GaussRankScaler
+
 def convert_to_float(x):
     try:
         return np.float64(x)
@@ -65,11 +67,17 @@ def create_segments_and_labels(df, time_steps, step, label_name):
 
 
 def normalize(df_train):
+    # This is minmax
+    """
     df_train['x-axis'] = df_train['x-axis'] / df_train['x-axis'].max()
     df_train['y-axis'] = df_train['y-axis'] / df_train['y-axis'].max()
     df_train['z-axis'] = df_train['z-axis'] / df_train['z-axis'].max()
     # Round numbers
     df_train = df_train.round({'x-axis': 4, 'y-axis': 4, 'z-axis': 4})
+    """
+    # This is Gaussian Rank Scaling
+    scaler = GaussRankScaler()
+    df_train = scaler.fit_transform(df_train[['x_axis', 'y-axis', 'z-axis']])
     return df_train
 
 
