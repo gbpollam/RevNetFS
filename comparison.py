@@ -31,7 +31,10 @@ STEP_DISTANCE = 10
 
 def main():
     file_path = 'dataset/WISDM_ar_v1.1_raw.txt'
-    x_train, y_train_hot, x_test, y_test_hot = prepare_data(file_path, TIME_PERIODS, STEP_DISTANCE)
+    x_train, y_train_hot, x_test, y_test_hot = prepare_data(file_path,
+                                                            TIME_PERIODS,
+                                                            STEP_DISTANCE,
+                                                            scaler_type='minmax')
 
     # Define the proportion to be used when splitting channels in reversible layers
     proportion = 0.5

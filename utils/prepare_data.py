@@ -118,7 +118,7 @@ def gauss_rank(df_train, scaler):
     return df_train
 
 
-def prepare_data(file_path, time_periods, step_distance):
+def prepare_data(file_path, time_periods, step_distance, scaler_type):
     # Load data set containing all the data from csv
     df = read_data(file_path)
 
@@ -133,8 +133,14 @@ def prepare_data(file_path, time_periods, step_distance):
     df_test = df[df['user-id'] > 28]
     df_train = df[df['user-id'] <= 28]
 
-    df_train, scaler = fit_minmax(df_train)
-    df_test = minmax(df_test, scaler)
+    if scaler_type == 'minmax':
+        df_train, scaler = fit_minmax(df_train)
+        df_test = minmax(df_test, scaler)
+    elif scaler_type == 'gauss_rank':
+        df_train, scaler = fit_gauss_rank(df_train)
+        df_test = gauss_rank(df_test, scaler)
+    else:
+        raise NotImplementedError
 
     x_train, y_train = create_segments_and_labels(df_train,
                                                   time_periods,
