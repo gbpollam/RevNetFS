@@ -17,6 +17,7 @@ class ConvLayer(Layer):
                  stride=1,
                  padding='VALID'):
         super().__init__()
+        self.name = "ConvLayer"
         self.input_shape = input_shape
         self.input_channels = input_shape[1]
         self.kernel_size = kernel_size

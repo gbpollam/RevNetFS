@@ -9,6 +9,8 @@ from layers.ActivationLayer import ActivationLayer
 from layers.AvgPool1d import AvgPool1d
 from layers.ConvLayer import ConvLayer
 from layers.GAPLayer import GAPLayer
+from layers.RevLayer import RevLayer
+from layers.MutantRevLayer import MutantRevLayer
 
 tf.random.set_seed(1234)
 
@@ -35,6 +37,7 @@ def main():
     file_path = 'dataset/WISDM_ar_v1.1_raw.txt'
     x_train, y_train_hot, x_test, y_test_hot = prepare_data(file_path, TIME_PERIODS, STEP_DISTANCE, scaler_type='minmax')
 
+    """
     model = NeuralNetwork()
     model.add(ConvLayer(input_shape=(20, 3), kernel_size=3, num_filters=32, stride=1))
     model.add(ActivationLayer('relu'))
@@ -49,6 +52,18 @@ def main():
     # model.add(ActivationLayer('relu'))
     model.add(FCLayer(units=6, input_dim=128))
     model.add(ActivationLayer('softmax'))
+    """
+    model = NeuralNetwork()
+    model.add(ConvLayer(input_shape=(20, 3), kernel_size=3, num_filters=32, stride=1))
+    model.add(ActivationLayer('relu'))
+    model.add(AvgPool1d(window_size=2))
+    model.add(RevLayer(input_shape=(9, 32), proportion=.5))
+    model.add(MutantRevLayer(input_shape=(9, 32), proportion=.75, new_channels=24))
+    model.add(ConvLayer(input_shape=(9, 48), kernel_size=3, num_filters=64, stride=1))
+    model.add(GAPLayer())
+    model.add(FCLayer(units=6, input_dim=64))
+    model.add(ActivationLayer('softmax'))
+
 
     model.set_loss(tf.keras.losses.BinaryCrossentropy())
 

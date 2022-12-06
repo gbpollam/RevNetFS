@@ -55,10 +55,44 @@ class RevLayerKeras(keras.layers.Layer):
         channels_x1 = self.in_channels - channels_x2
         return int(channels_x1), int(channels_x2)
 
-    def split(self, x, n_filter):
-        x1 = x[:, :, :n_filter // 2]
-        x2 = x[:, :, n_filter // 2:]
-        return x1, x2
+    def concat(self, *argv):
+        return tf.concat(list(argv), axis=2)
+
+
+class SmallerRevLayerKeras(keras.layers.Layer):
+    def __init__(self,
+                 in_channels,
+                 proportion=0.5
+                 ):
+        super(SmallerRevLayerKeras, self).__init__()
+        # Set how to split the channels
+        self.in_channels = in_channels
+        self.channels_x1, self.channels_x2 = self.how_to_split(proportion)
+        # Define F layers
+        self.F_relu = tf.keras.layers.ReLU()
+        self.F_conv = tf.keras.layers.Conv1D(filters=self.channels_x1,
+                                              kernel_size=3,
+                                              padding='same',
+                                              strides=1)
+        # Define G layers
+        self.G_relu = tf.keras.layers.ReLU()
+        self.G_conv = tf.keras.layers.Conv1D(filters=self.channels_x2,
+                                              kernel_size=3,
+                                              padding='same',
+                                              strides=1)
+
+    def call(self, x, **kwargs):
+        x1, x2 = tf.split(x, num_or_size_splits=(self.channels_x1, self.channels_x2), axis=2)
+        F_x2 = self.F_relu(self.F_conv(x2))
+        y1 = tf.add(x1, F_x2)
+        y2 = x2 + self.F_relu(self.F_conv(y1))
+        return tf.concat((y1, y2), axis=2)
+
+    def how_to_split(self, proportion):
+        # TODO: Add a check to see that the number of channels are integer
+        channels_x2 = self.in_channels*proportion
+        channels_x1 = self.in_channels - channels_x2
+        return int(channels_x1), int(channels_x2)
 
     def concat(self, *argv):
         return tf.concat(list(argv), axis=2)

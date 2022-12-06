@@ -11,6 +11,7 @@ class AvgPool1d(Layer):
                  stride=1,
                  padding='same'):
         super().__init__()
+        self.name = "AvgPool1d"
         self.window_size = window_size
         self.stride = stride
         self.padding = padding

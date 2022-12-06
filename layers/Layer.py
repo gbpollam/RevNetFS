@@ -5,6 +5,7 @@ class Layer:
     def __init__(self):
         self.id = 0
         self.batch_counter = 0
+        self.name = "AbstractLayer"
 
     # computes the output Y of a layer for a given input X
     def forward(self, input):

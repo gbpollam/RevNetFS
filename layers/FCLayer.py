@@ -10,6 +10,7 @@ class FCLayer(Layer):
                  input_dim=32,
                  initialization='xavier'):
         super().__init__()
+        self.name = "FCLayer"
         if initialization == 'xavier':
             stddev = np.sqrt(2. / (units + input_dim))
             self.W = tf.random.normal([input_dim, units], mean=0, stddev=stddev)

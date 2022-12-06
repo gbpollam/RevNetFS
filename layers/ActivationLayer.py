@@ -8,6 +8,7 @@ class ActivationLayer(Layer):
     def __init__(self,
                  function_name):
         super().__init__()
+        self.name = "ActivationLayer"
         self.function_name = function_name
         if function_name != 'relu' and function_name != 'softmax':
             raise NotImplementedError

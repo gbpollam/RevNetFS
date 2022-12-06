@@ -37,9 +37,7 @@ def main():
                                                             scaler_type='minmax')
 
     # Define the proportion to be used when splitting channels in reversible layers
-    proportion = 0.5 # 0.75 , 0.875
-    # 16  (8,8) (12,4) (14, 2)
-    # 0.8005   0.8044     0.8011
+    proportion = 0.5
 
     # Define the keras model (Net1)
     '''
@@ -57,12 +55,6 @@ def main():
     model.add(keras.Input(shape=(20, 3)))
     model.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu'))
     model.add(RevLayerKeras(in_channels=16, proportion=proportion))
-    model.add(RevLayerKeras(in_channels=16, proportion=proportion))
-    model.add(RevLayerKeras(in_channels=16, proportion=proportion))
-    model.add(keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu'))
-    model.add(RevLayerKeras(in_channels=32, proportion=proportion))
-    model.add(RevLayerKeras(in_channels=32, proportion=proportion))
-    model.add(RevLayerKeras(in_channels=32, proportion=proportion))
     model.add(keras.layers.GlobalAvgPool1D())
     # model.add(keras.layers.Dense(units=16, activation='relu'))
     model.add(keras.layers.Dense(units=6, activation='softmax'))
@@ -86,14 +78,14 @@ def main():
     loss = tf.losses.CategoricalCrossentropy()
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
 
-    # model.compile(optimizer, loss=loss)
-    # model.fit(x_train, y_train_hot, epochs=1, batch_size=32)
+    model.compile(optimizer, loss=loss)
+    model.fit(x_train, y_train_hot, epochs=1, batch_size=32)
 
-    model2.compile(optimizer, loss=loss)
-    model2.fit(x_train, y_train_hot, epochs=100, batch_size=64)
+    # model2.compile(optimizer, loss=loss)
+    # model2.fit(x_train, y_train_hot, epochs=100, batch_size=64)
 
-    # predictions = model.predict(x_test)
-    predictions = model2.predict(x_test)
+    predictions = model.predict(x_test)
+    # predictions = model2.predict(x_test)
 
     true_preds = []
 

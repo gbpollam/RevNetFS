@@ -66,6 +66,10 @@ class NeuralNetwork:
                         loss = layer.backward(self.inputs[layer.id], target, learning_rate)
                     elif layer.needs_inputs():
                         loss = layer.backward(self.inputs[layer.id], loss, learning_rate)
+                    elif layer.name == "RevLayer":
+                        loss, input = layer.backward_rev(self.inputs[layer.id+1], loss, learning_rate)
+                        del self.inputs[layer.id+1]
+                        self.inputs[layer.id] = input
                     else:
                         loss = layer.backward_ni(loss, learning_rate)
                     last = False
