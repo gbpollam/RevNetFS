@@ -10,6 +10,15 @@ from utils.gauss_rank_scaler import GaussRankScaler
 pd.options.mode.chained_assignment = None
 
 
+# This one to be used by the Neural Network pre-training
+def shuffle_data(x_train, y_train):
+    indices = tf.range(start=0, limit=tf.shape(x_train)[0], dtype=tf.int32)
+    shuffled_indices = tf.random.shuffle(indices)
+    x_train = tf.gather(x_train, shuffled_indices)
+    y_train = tf.gather(y_train, shuffled_indices)
+    return x_train, y_train
+
+
 def convert_to_float(x):
     try:
         return np.float64(x)

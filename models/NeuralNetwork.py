@@ -4,6 +4,8 @@ from tqdm import tqdm
 import math
 import time
 
+from utils.prepare_data import shuffle_data
+
 
 class NeuralNetwork:
     def __init__(self):
@@ -34,7 +36,7 @@ class NeuralNetwork:
 
     def sgd(self, x_train, y_train, epochs, learning_rate):
         for epoch in range(epochs):
-            x_train = tf.random.shuffle(x_train)
+            x_train, y_train = shuffle_data(x_train, y_train)
             tot_loss = 0
             # tqdm(range(x_train.get_shape()[0]), desc=("Training epoch ", epoch, " of ", epochs))
             print("Training epoch ", (epoch+1), " of ", epochs, ":")
@@ -71,11 +73,7 @@ class NeuralNetwork:
 
     def minibatch_gd(self, x_train, y_train, batch_size, epochs, learning_rate):
         for epoch in range(epochs):
-
-            indices = tf.range(start=0, limit=tf.shape(x_train)[0], dtype=tf.int32)
-            shuffled_indices = tf.random.shuffle(indices)
-            x_train = tf.gather(x_train, shuffled_indices)
-            y_train = tf.gather(y_train, shuffled_indices)
+            x_train, y_train = shuffle_data(x_train, y_train)
             tot_loss = 0
             # tqdm(range(x_train.get_shape()[0]), desc=("Training epoch ", epoch, " of ", epochs))
             print("Training epoch ", (epoch+1), " of ", epochs, ":")
@@ -86,7 +84,7 @@ class NeuralNetwork:
                 target = y_train[i]
                 # fw_times = []
                 for layer in self.layers:
-                    start = time.time()
+                    # start = time.time()
                     if layer.needs_inputs():
                         self.inputs[layer.id] = output
                     output = layer.forward(output)

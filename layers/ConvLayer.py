@@ -96,7 +96,11 @@ class ConvLayer(Layer):
                     for l in range(self.num_filters):
                         sum = 0
                         for m in range(1, self.input_shape[0]-1):
-                            sum += a_gradient_arr[m, l] * input_arr[m+i-2, j]
+                            sum += a_gradient_arr[m, l] * input_arr[m+i-1, j]
+                        if i != 0:
+                            sum += a_gradient_arr[0, l] * input_arr[i-1, j]
+                        if i != (self.kernel_size - 1):
+                            sum += a_gradient_arr[self.input_shape[0]-1, l] * input_arr[(self.input_shape[0]-1)+i-1, j]
                         w_gradient[i, j, l] = sum
 
             # Compute the x_gradient
@@ -107,13 +111,14 @@ class ConvLayer(Layer):
                     sum = 0
                     for f in range(self.num_filters):
                         for j in range(self.kernel_size):
-                            w_start = 0
-                            if n == (j - 1):
-                                w_start = weights_arr[1, c, f]
-                            w_end = 0
-                            if n == (self.input_shape[0] + j - 2):
-                                w_end = weights_arr[self.kernel_size-1, c, f]
-                            sum += a_gradient_arr[n-j+2, f] * (weights_arr[j, c, f] - w_start - w_end)
+                            # TODO: This should be a useless loop, optimize
+                            for m in range(1, self.input_shape[0] - 2):
+                                if n == (m+j-1):
+                                    sum += a_gradient_arr[m, f] * weights_arr[j, c, f]
+                            if n == (j+1):
+                                sum += a_gradient_arr[0, f] * weights_arr[j, c, f]
+                            elif n == (self.input_shape[0] + j - 3):
+                                sum += a_gradient_arr[self.input_shape[0] - 1, f] * weights_arr[j, c, f]
                     x_gradient[n, c] = sum
 
             # Compute b_gradient

@@ -37,7 +37,9 @@ def main():
                                                             scaler_type='minmax')
 
     # Define the proportion to be used when splitting channels in reversible layers
-    proportion = 0.5
+    proportion = 0.5 # 0.75 , 0.875
+    # 16  (8,8) (12,4) (14, 2)
+    # 0.8005   0.8044     0.8011
 
     # Define the keras model (Net1)
     '''
@@ -61,9 +63,8 @@ def main():
     model.add(RevLayerKeras(in_channels=32, proportion=proportion))
     model.add(RevLayerKeras(in_channels=32, proportion=proportion))
     model.add(RevLayerKeras(in_channels=32, proportion=proportion))
-    model.add(keras.layers.AveragePooling1D())
     model.add(keras.layers.GlobalAvgPool1D())
-    model.add(keras.layers.Dense(units=16, activation='relu'))
+    # model.add(keras.layers.Dense(units=16, activation='relu'))
     model.add(keras.layers.Dense(units=6, activation='softmax'))
 
     # Define the keras model (Net2)

@@ -33,23 +33,26 @@ STEP_DISTANCE = 10
 
 def main():
     file_path = 'dataset/WISDM_ar_v1.1_raw.txt'
-    x_train, y_train_hot, x_test, y_test_hot = prepare_data(file_path, TIME_PERIODS, STEP_DISTANCE)
+    x_train, y_train_hot, x_test, y_test_hot = prepare_data(file_path, TIME_PERIODS, STEP_DISTANCE, scaler_type='minmax')
 
     model = NeuralNetwork()
     model.add(ConvLayer(input_shape=(20, 3), kernel_size=3, num_filters=32, stride=1))
     model.add(ActivationLayer('relu'))
     model.add(AvgPool1d(window_size=2))
     model.add(ConvLayer(input_shape=(9, 32), kernel_size=3, num_filters=64, stride=1))
+    model.add(ActivationLayer('relu'))
+    model.add(ConvLayer(input_shape=(7, 64), kernel_size=3, num_filters=128, stride=1, padding='SAME'))
+    model.add(ActivationLayer('relu'))
     model.add(AvgPool1d(window_size=2))
     model.add(GAPLayer())
     # model.add(FCLayer(units=50, input_dim=64))
     # model.add(ActivationLayer('relu'))
-    model.add(FCLayer(units=6, input_dim=64))
+    model.add(FCLayer(units=6, input_dim=128))
     model.add(ActivationLayer('softmax'))
 
     model.set_loss(tf.keras.losses.BinaryCrossentropy())
 
-    model.fit(x_train, y_train_hot, batch_size=32, epochs=10, learning_rate=0.01)
+    model.fit(x_train, y_train_hot, batch_size=1, epochs=10, learning_rate=0.01)
 
     predictions = model.predict(x_test)
     true_preds = []
