@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import math
 import time
+import pandas as pd
 
 '''
 W = tf.random.normal([5, 4], mean=0, stddev=5)
@@ -137,6 +138,7 @@ output = tf.squeeze(output)
 output += biases
 print(output)
 '''
+"""
 tf.random.set_seed(42)
 np.random.seed(42)
 input = tf.random.normal([20, 3], mean=0, stddev=5)
@@ -179,7 +181,7 @@ times.append(end-start)
 
 start = time.time()
 output_np = np.convolve
-
+"""
 
 
 '''
@@ -249,3 +251,8 @@ print(layer_outs-output)
 # print(model_keras.weights[0])
 # Conv.print_weights()
 '''
+
+saved_results = np.random.normal(0, 3, size=(30, 3))
+print(saved_results[10,2])
+saved_results[10,2] = 10
+print(saved_results[10,2])
