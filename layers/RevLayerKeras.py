@@ -85,7 +85,7 @@ class SmallerRevLayerKeras(keras.layers.Layer):
         x1, x2 = tf.split(x, num_or_size_splits=(self.channels_x1, self.channels_x2), axis=2)
         F_x2 = self.F_relu(self.F_conv(x2))
         y1 = tf.add(x1, F_x2)
-        y2 = x2 + self.F_relu(self.F_conv(y1))
+        y2 = x2 + self.G_relu(self.G_conv(y1))
         return tf.concat((y1, y2), axis=2)
 
     def how_to_split(self, proportion):

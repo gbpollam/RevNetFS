@@ -5,7 +5,7 @@ import pandas as pd
 
 from utils.prepare_data import prepare_data
 
-from layers.RevLayerKeras import RevLayerKeras
+from layers.RevLayerKeras import RevLayerKeras, SmallerRevLayerKeras
 
 tf.random.set_seed(1234)
 
@@ -37,7 +37,7 @@ def main():
                                                             scaler_type='minmax')
 
     # Define the proportion to be used when splitting channels in reversible layers
-    proportion = 0.5
+    proportion = 0.75
 
     # Define the keras model (Net1)
     '''
@@ -50,7 +50,7 @@ def main():
     model.add(keras.layers.Dense(units=6, activation='softmax'))
     '''
 
-    # Define the keras model (Net2)
+    # Define the keras model
     model = keras.Sequential()
     model.add(keras.Input(shape=(20, 3)))
     model.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu'))
@@ -58,8 +58,41 @@ def main():
     model.add(keras.layers.GlobalAvgPool1D())
     # model.add(keras.layers.Dense(units=16, activation='relu'))
     model.add(keras.layers.Dense(units=6, activation='softmax'))
+    # PERFORMANCE:
+    # (epochs = 50, batch_size=32, proportion=0.5) = 0.7934
+    # (epochs = 100, batch_size=32, proportion=0.5) = 0.8003
+    # (epochs = 100, batch_size=32, proportion=0.75) = 0.8202
+    # (epochs = 100, batch_size=32, proportion=0.875) = 0.7944
 
-    # Define the keras model (Net2)
+    # Define the model with a smaller Reversible Layer
+    # Number of parameters:
+    # p=0.5 : 662 (160+400+102)
+    # p=0.75 : 566 (160+304+102)
+    # p=0.875 : 446 (160+184+102)
+    model_red = keras.Sequential()
+    model_red.add(keras.Input(shape=(20, 3)))
+    model_red.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu'))
+    model_red.add(SmallerRevLayerKeras(in_channels=16, proportion=proportion))
+    model_red.add(keras.layers.GlobalAvgPool1D())
+    # model.add(keras.layers.Dense(units=16, activation='relu'))
+    model_red.add(keras.layers.Dense(units=6, activation='softmax'))
+    # PERFORMANCE:
+    # (epochs = 100, batch_size=32, proportion=0.5) = 0.7756
+    # (epochs = 100, batch_size=32, proportion=0.75) = 0.7718
+    # (epochs = 100, batch_size=32, proportion=0.875) = 0.7656
+
+    # Define a model with the same number of parameters as the 0.5 case (662)
+    # Number of parameters = 654 (40 + 208 + 304 + 102)
+    model_same75 = keras.Sequential()
+    model_same75.add(keras.Input(shape=(20, 3)))
+    model_same75.add(keras.layers.Conv1D(filters=4, kernel_size=3, activation='relu'))
+    model_same75.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu', padding='SAME'))
+    model_same75.add(SmallerRevLayerKeras(in_channels=16, proportion=proportion))
+    model_same75.add(keras.layers.GlobalAvgPool1D())
+    model_same75.add(keras.layers.Dense(units=6, activation='softmax'))
+    # (epochs = 100, batch_size=32, proportion=0.75) = 0.7657 0.7893 0.7896
+
+    # Define the keras model
     model2 = keras.Sequential()
     model2.add(keras.Input(shape=(20, 3)))
     model2.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu'))
@@ -78,14 +111,22 @@ def main():
     loss = tf.losses.CategoricalCrossentropy()
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
 
-    model.compile(optimizer, loss=loss)
-    model.fit(x_train, y_train_hot, epochs=1, batch_size=32)
+    # model.compile(optimizer, loss=loss)
+    # model.fit(x_train, y_train_hot, epochs=100, batch_size=32)
 
     # model2.compile(optimizer, loss=loss)
     # model2.fit(x_train, y_train_hot, epochs=100, batch_size=64)
 
-    predictions = model.predict(x_test)
+    # model_red.compile(optimizer, loss=loss)
+    # model_red.fit(x_train, y_train_hot, epochs=100, batch_size=32)
+
+    model_same75.compile(optimizer, loss=loss)
+    model_same75.fit(x_train, y_train_hot, epochs=100, batch_size=32)
+
+    # predictions = model.predict(x_test)
     # predictions = model2.predict(x_test)
+    # predictions = model_red.predict(x_test)
+    predictions = model_same75.predict(x_test)
 
     true_preds = []
 
