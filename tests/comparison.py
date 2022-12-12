@@ -30,7 +30,7 @@ STEP_DISTANCE = 10
 
 
 def main():
-    file_path = 'dataset/WISDM_ar_v1.1_raw.txt'
+    file_path = '../dataset/WISDM_ar_v1.1_raw.txt'
     x_train, y_train_hot, x_test, y_test_hot = prepare_data(file_path,
                                                             TIME_PERIODS,
                                                             STEP_DISTANCE,

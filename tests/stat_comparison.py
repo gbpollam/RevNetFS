@@ -38,6 +38,15 @@ def main():
     # Define the proportion to be used when splitting channels in reversible layers
     proportion1 = 0.5
 
+    # Define a standard convolutional network with the same number of parameters
+    # Number of parameters: 640
+    model_conv = keras.Sequential()
+    model_conv.add(keras.Input(shape=(20, 3)))
+    model_conv.add(keras.layers.Conv1D(filters=9, kernel_size=3, activation='relu'))
+    model_conv.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu', padding='SAME'))
+    model_conv.add(keras.layers.GlobalAvgPool1D())
+    model_conv.add(keras.layers.Dense(units=6, activation='softmax'))
+
     # Define the keras model
     # Number of parameters: 662
     model = keras.Sequential()
@@ -71,6 +80,20 @@ def main():
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
 
     saved_results = np.zeros(shape=(34, 3))
+
+    # Train and predict for the convolutional net
+    model_conv.compile(optimizer, loss=loss)
+    model_conv.summary()
+    model_conv.fit(x_train, y_train_hot, epochs=100, batch_size=32)
+    predictions = model_conv.predict(x_test)
+    true_preds = []
+    for i in range(len(predictions)):
+        if tf.math.argmax(predictions[i]) == tf.math.argmax(y_test_hot[i]):
+            true_preds.append(1)
+        else:
+            true_preds.append(0)
+    print("Accuracy on test data: ", sum(true_preds) / len(true_preds))
+
 
     for j in range(34):
         # Train and predict for model 1
@@ -110,7 +133,7 @@ def main():
         saved_results[j, 2] = sum(true_preds) / len(true_preds)
         tf.keras.backend.clear_session()
 
-    pd.DataFrame(saved_results).to_csv("results/stat_comparison_results.csv", header=["Balanced",
+    pd.DataFrame(saved_results).to_csv("../results/stat_comparison_results.csv", header=["Balanced",
                                                                               "Unbalanced_less_params",
                                                                               "Unbalanced_same_params"])
 
