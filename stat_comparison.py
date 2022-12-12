@@ -39,6 +39,7 @@ def main():
     proportion1 = 0.5
 
     # Define the keras model
+    # Number of parameters: 662
     model = keras.Sequential()
     model.add(keras.Input(shape=(20, 3)))
     model.add(keras.layers.Conv1D(filters=16, kernel_size=3, activation='relu'))
@@ -69,9 +70,9 @@ def main():
     loss = tf.losses.CategoricalCrossentropy()
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
 
-    saved_results = np.zeros(shape=(30, 3))
+    saved_results = np.zeros(shape=(34, 3))
 
-    for j in range(30):
+    for j in range(34):
         # Train and predict for model 1
         model.compile(optimizer, loss=loss)
         model.fit(x_train, y_train_hot, epochs=100, batch_size=32)
@@ -109,7 +110,7 @@ def main():
         saved_results[j, 2] = sum(true_preds) / len(true_preds)
         tf.keras.backend.clear_session()
 
-    pd.DataFrame(saved_results).to_csv("stat_comparison_results.csv", header=["Balanced",
+    pd.DataFrame(saved_results).to_csv("results/stat_comparison_results.csv", header=["Balanced",
                                                                               "Unbalanced_less_params",
                                                                               "Unbalanced_same_params"])
 
