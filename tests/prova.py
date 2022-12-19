@@ -252,7 +252,14 @@ print(layer_outs-output)
 # Conv.print_weights()
 '''
 
-saved_results = np.random.normal(0, 3, size=(30, 3))
-print(saved_results[10,2])
-saved_results[10,2] = 10
-print(saved_results[10,2])
+weights = tf.random.normal([3, 4, 5], mean=0, stddev=5)
+weights1 = tf.transpose(weights, [0, 2, 1])
+# print(weights)
+# print(weights1)
+
+tensor = tf.constant(shape=(6, 1), value=[0, 0, 0, 0, 0, 1])
+# print(tensor)
+
+target = y_train_t = tf.constant(shape=(6, 1), value=[0, 0, 0, 0, 0, 1], dtype=float)
+target = tf.transpose(target)
+print(target)

@@ -23,6 +23,58 @@ class NeuralNetwork:
     def set_loss(self, loss):
         self.loss = loss
 
+    def predict_datum(self, datum):
+        output = datum
+        for layer in self.layers:
+            output = layer.forward(output)
+        return output
+
+    def get_gradients_for_datum(self, x_train, y_train, learning_rate):
+        # Forward Pass
+        self.inputs = {}
+        output = x_train
+        target = y_train
+        for layer in self.layers:
+            if layer.needs_inputs():
+                self.inputs[layer.id] = output
+            output = layer.forward(output)
+
+        # Backward Pass
+        target = tf.transpose(target)
+        output = tf.transpose(output)
+        print("Costom FW output: ", output)
+        print("Costom FW target: ", target)
+        loss_fun = tf.keras.losses.CategoricalCrossentropy()
+        loss_tf = loss_fun(target, output)
+        loss = loss_tf.numpy()
+
+        target = tf.transpose(target)
+
+        output = tf.transpose(output)
+
+        print("Loss_tf: ", loss_tf)
+        print("Loss: ", loss)
+
+        gradients = []
+        w_gradients = []
+
+        # TODO: This works only with softmax as last layer, make it general
+        last = True
+        for layer in reversed(self.layers):
+            if last:
+                loss = layer.backward(self.inputs[layer.id], target, learning_rate)
+            elif layer.needs_inputs():
+                loss = layer.backward(self.inputs[layer.id], loss, learning_rate)
+            elif layer.name == "RevLayer":
+                loss, input = layer.backward_rev(self.inputs[layer.id + 1], loss, learning_rate)
+                del self.inputs[layer.id + 1]
+                self.inputs[layer.id] = input
+            else:
+                loss = layer.backward_ni(loss, learning_rate)
+            gradients.append(loss)
+            last = False
+        return gradients
+
     # predict output for given input
     def predict(self, input_data):
         outputs = []

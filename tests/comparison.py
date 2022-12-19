@@ -35,6 +35,7 @@ def main():
                                                             TIME_PERIODS,
                                                             STEP_DISTANCE,
                                                             scaler_type='minmax')
+    print(y_train_hot[0])
 
     # Define the proportion to be used when splitting channels in reversible layers
     proportion = 0.75

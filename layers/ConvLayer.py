@@ -82,10 +82,25 @@ class ConvLayer(Layer):
             a_gradient = tf.expand_dims(a_gradient, axis=0)
             paddings = ([0, 0], [2, 2], [0, 0])
             x_gradient = tf.squeeze(
-                tf.nn.convolution(input=tf.pad(a_gradient, paddings, "CONSTANT"),
+                tf.nn.convolution(input=tf.pad(a_gradient, paddings, "CONSTANT", constant_values=0),
                                   filters=tf.transpose(self.weights, [0, 2, 1]),
                                   strides=self.stride,
                                   padding=self.padding))
+
+            """
+            x_gradient = np.zeros(shape=self.input_shape)
+            print(self.input_shape)
+            for i in range(self.input_shape[0]):
+                for n in range(self.input_shape[1]):
+                    sum = 0
+                    for j in range(self.num_filters):
+                        for k in range(self.kernel_size):
+                            print("i: ", i)
+                            print("k: ", k)
+                            sum += a_gradient_arr[i-k, j] * self.weights[k, n, j]
+                    x_gradient[i, n] = sum
+            """
+
         elif self.padding == 'SAME':
             # Compute the w_gradient
             my_shape = (self.kernel_size, self.input_channels, self.num_filters)
@@ -133,6 +148,12 @@ class ConvLayer(Layer):
 
     def backward(self, input, a_gradient, learning_rate):
         x_gradient, w_gradient, b_gradient = self.compute_gradients(input, a_gradient)
+
+        print("------------------------------------------------Gradients of layer ", self.id, "----------------------------")
+        print(w_gradient)
+        print(b_gradient)
+        np.save('../results/Conv_w_gradient_custom.npy', w_gradient.numpy())
+        np.save('../results/Conv_b_gradient_custom.npy', b_gradient.numpy())
 
         w_gradient = tf.clip_by_value(w_gradient, -10, 10)
         b_gradient = tf.clip_by_value(b_gradient, -10, 10)
@@ -195,8 +216,11 @@ class ConvLayer(Layer):
 
         return x_gradient
 
-    def print_weights(self):
-        print(self.weights)
+    def get_weigths_biases(self):
+        return self.weights, self.biases
 
     def set_weights(self, weights):
         self.weights = weights
+
+    def set_biases(self, biases):
+        self.biases = biases

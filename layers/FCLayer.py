@@ -33,6 +33,15 @@ class FCLayer(Layer):
         b_gradient = a_gradient
         x_gradient = tf.matmul(self.W, a_gradient)
 
+        print("------------------------------------------------Gradients of layer ", self.id,
+              "----------------------------")
+        print(w_gradient)
+        print(b_gradient)
+        # Save tensors to a string
+        np.save('../results/FC_w_gradient_custom.npy', w_gradient.numpy())
+        np.save('../results/FC_b_gradient_custom.npy', b_gradient.numpy())
+
+
         w_gradient = tf.clip_by_value(w_gradient, -10, 10)
         b_gradient = tf.clip_by_value(b_gradient, -10, 10)
         x_gradient = tf.clip_by_value(x_gradient, -10, 10)
@@ -68,3 +77,6 @@ class FCLayer(Layer):
             self.b_gradient_saved = None
 
         return x_gradient
+
+    def get_weights_biases(self):
+        return self.W, self.b
