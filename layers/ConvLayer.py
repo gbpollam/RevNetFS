@@ -61,7 +61,7 @@ class ConvLayer(Layer):
         if self.padding == 'VALID':
             # Compute the b_gradient
             b_gradient = tf.expand_dims(tf.reduce_sum(a_gradient, axis=0), axis=0)
-
+            """
             # Compute the w_gradient (for now crudely with numpy)
             my_shape = (self.kernel_size, self.input_channels, self.num_filters)
             w_gradient = np.zeros(shape=my_shape)
@@ -77,6 +77,13 @@ class ConvLayer(Layer):
                         w_gradient[n, i, q] = sum
 
             w_gradient = tf.convert_to_tensor(w_gradient, dtype=float)
+            """
+            a_paddings = ([1, 1], [0, 0])
+            a_gradient_pad = tf.pad(a_gradient, a_paddings, "CONSTANT", constant_values=0)
+            print("a_gradient_size: ", tf.shape(a_gradient_pad))
+            filter = tf.expand_dims(a_gradient_pad, axis=0)
+            w_gradient = tf.nn.convolution(input=tf.expand_dims(tf.transpose(input), axis=0), filters=filter,
+                                           strides=self.stride, padding=self.padding)
 
             # Compute the x_gradient
             a_gradient = tf.expand_dims(a_gradient, axis=0)

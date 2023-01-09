@@ -42,18 +42,15 @@ class NeuralNetwork:
         # Backward Pass
         target = tf.transpose(target)
         output = tf.transpose(output)
-        print("Costom FW output: ", output)
-        print("Costom FW target: ", target)
         loss_fun = tf.keras.losses.CategoricalCrossentropy()
         loss_tf = loss_fun(target, output)
         loss = loss_tf.numpy()
 
         target = tf.transpose(target)
 
-        output = tf.transpose(output)
+        output_return = output
 
-        print("Loss_tf: ", loss_tf)
-        print("Loss: ", loss)
+        output = tf.transpose(output)
 
         gradients = []
         w_gradients = []
@@ -73,7 +70,7 @@ class NeuralNetwork:
                 loss = layer.backward_ni(loss, learning_rate)
             gradients.append(loss)
             last = False
-        return gradients
+        return gradients, output_return, target, loss, loss_tf
 
     # predict output for given input
     def predict(self, input_data):
