@@ -34,7 +34,7 @@ TIME_PERIODS = 20
 # TIME_PERIODS, then there is no overlap between the segments
 STEP_DISTANCE = 10
 
-SMALLNET = True
+PADDING = 'VALID'
 
 
 def get_gradients(model: tf.keras.Model, x, y_true):
@@ -54,7 +54,7 @@ def main():
     y_train = tf.constant(shape=(1, 6), value=[0, 0, 0, 0, 0, 1], dtype=float)
     y_train_t = tf.constant(shape=(6, 1), value=[0, 0, 0, 0, 0, 1], dtype=float)
 
-    if SMALLNET:
+    if PADDING == 'VALID':
         model_custom = NeuralNetwork()
         model_custom.add(ConvLayer(input_shape=(20, 3), kernel_size=3, num_filters=6, stride=1))
         model_custom.add(GAPLayer())
@@ -70,6 +70,80 @@ def main():
             def __init__(self):
                 super(ModelKeras, self).__init__()
                 self.layer1 = keras.layers.Conv1D(filters=6, kernel_size=3)
+                self.layer2 = keras.layers.GlobalAvgPool1D()
+                self.classifier = keras.layers.Activation('softmax')
+
+            def call(self, inputs):
+                target = tf.constant(shape=(1, 6), value=[0, 0, 0, 0, 0, 1], dtype=tf.int32)
+                self_loss = tf.keras.losses.CategoricalCrossentropy()
+                with tf.GradientTape(persistent=True) as tape:
+                    x1 = self.layer1(inputs)
+                    x2 = self.layer2(x1)
+                    output = self.classifier(x2)
+                    loss = self_loss(target, output)
+                gradients = [tape.gradient(loss, self.layer1.trainable_weights)]
+                a_gradients = [tape.gradient(loss, inputs), tape.gradient(loss, x1), tape.gradient(loss, x2)]
+                return output, gradients, a_gradients, loss
+
+        # model_keras = keras.Model(input_keras, output_keras)
+        model_keras = ModelKeras()
+        model_keras.build(input_shape=(1, 20, 3))
+
+        I = tf.keras.Input(shape=(20, 3))
+        model_keras(I)
+
+        model_keras.layers[0].set_weights(wb_conv)
+
+        output_keras, gradients_keras, a_gradients_keras, loss = model_keras.call(tf.expand_dims(x_train, axis=0))
+
+        gradients_custom, output_custom, target_custom, loss_custom, loss_tf_custom = \
+            model_custom.get_gradients_for_datum(x_train, y_train_t, 0.01)
+
+        print("------------------------------------------Comparing the losses----------"
+              "---------------------------------")
+        print("Keras loss: ", loss)
+        print("Custom loss: ", loss_tf_custom)
+        print("Difference: ", loss - loss_tf_custom)
+
+        print("------------------------------------------Comparing the outputs----------"
+              "---------------------------------")
+        print("Keras output: ", output_keras)
+        print("Custom loss: ", output_custom)
+        print("Difference: ", output_keras - output_custom)
+
+        print("------------------------------------------Comparing the a_gradients----------"
+              "---------------------------------")
+        print("Keras a_gradients: ", a_gradients_keras)
+        print("Custom a_gradients: ", gradients_custom)
+        print("Differences:", a_gradients_keras[2] - tf.transpose(gradients_custom[0]),
+              tf.squeeze(a_gradients_keras[1]) - gradients_custom[1])
+
+        print("------------------------------------------Comparing the gradients of weights and biases----------"
+              "---------------------------------")
+        print(gradients_keras)
+        print("Difference between Conv_w_gradients:")
+        print(gradients_keras[0][0].numpy() - np.load('../results/Conv_w_gradient_custom.npy'))
+
+        print("Difference between Conv_b_gradients:")
+        print(gradients_keras[0][1].numpy() - np.load('../results/Conv_b_gradient_custom.npy'))
+        return 0
+
+    elif PADDING == 'SAME':
+        model_custom = NeuralNetwork()
+        model_custom.add(ConvLayer(input_shape=(20, 3), kernel_size=3, num_filters=6, stride=1, padding='SAME'))
+        model_custom.add(GAPLayer())
+        model_custom.add(ActivationLayer('softmax'))
+
+        model_custom.set_loss(tf.keras.losses.BinaryCrossentropy())
+
+        w_conv, b_conv = model_custom.layers[0].get_weigths_biases()
+        wb_conv = [tf.make_ndarray(tf.make_tensor_proto(w_conv)),
+                   tf.make_ndarray(tf.make_tensor_proto(tf.squeeze(b_conv)))]
+
+        class ModelKeras(tf.keras.Model):
+            def __init__(self):
+                super(ModelKeras, self).__init__()
+                self.layer1 = keras.layers.Conv1D(filters=6, kernel_size=3, padding='same')
                 self.layer2 = keras.layers.GlobalAvgPool1D()
                 self.classifier = keras.layers.Activation('softmax')
 

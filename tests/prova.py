@@ -252,14 +252,5 @@ print(layer_outs-output)
 # Conv.print_weights()
 '''
 
-weights = tf.random.normal([3, 4, 5], mean=0, stddev=5)
-weights1 = tf.transpose(weights, [0, 2, 1])
-# print(weights)
-# print(weights1)
-
-tensor = tf.constant(shape=(6, 1), value=[0, 0, 0, 0, 0, 1])
-# print(tensor)
-
-target = y_train_t = tf.constant(shape=(6, 1), value=[0, 0, 0, 0, 0, 1], dtype=float)
-target = tf.transpose(target)
-print(target)
+dwcn_dwn = tf.zeros(shape=(1, 10))
+dwcn_dwn[0, 5] = 1

@@ -3,6 +3,8 @@ import numpy as np
 
 from layers.Layer import Layer
 
+# Temporary global variable, activate when comparing custom and Keras gradients
+SAVE_GRADS = True
 
 class FCLayer(Layer):
     def __init__(self,
@@ -33,13 +35,10 @@ class FCLayer(Layer):
         b_gradient = a_gradient
         x_gradient = tf.matmul(self.W, a_gradient)
 
-        print("------------------------------------------------Gradients of layer ", self.id,
-              "----------------------------")
-        print(w_gradient)
-        print(b_gradient)
         # Save tensors to a string
-        np.save('../results/FC_w_gradient_custom.npy', w_gradient.numpy())
-        np.save('../results/FC_b_gradient_custom.npy', b_gradient.numpy())
+        if SAVE_GRADS:
+            np.save('../results/FC_w_gradient_custom.npy', w_gradient.numpy())
+            np.save('../results/FC_b_gradient_custom.npy', b_gradient.numpy())
 
 
         w_gradient = tf.clip_by_value(w_gradient, -10, 10)

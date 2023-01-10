@@ -9,6 +9,9 @@ import time
 
 from layers.Layer import Layer
 
+# Temporary global variable, activate when comparing custom and Keras gradients
+SAVE_GRADS = True
+
 class ConvLayer(Layer):
     def __init__(self,
                  input_shape,
@@ -78,13 +81,33 @@ class ConvLayer(Layer):
 
             w_gradient = tf.convert_to_tensor(w_gradient, dtype=float)
             """
-            a_paddings = ([1, 1], [0, 0])
+            unfolded_w_grad = []
+            for n in range(self.num_filters):
+                sum = None
+                for c in range(self.input_channels):
+                    dwcn_dwn = np.zeros(shape=(1, self.input_channels))
+                    dwcn_dwn[0, c] = 1
+                    dwcn_dwn = tf.convert_to_tensor(dwcn_dwn, dtype=float)
+                    filter = tf.matmul(tf.expand_dims(a_gradient[:, n], axis=1), dwcn_dwn)
+                    print("Reached before convolution!")
+                    addendum = tf.nn.convolution(input=tf.expand_dims(input[:, c], axis=1),
+                                                 filters=tf.expand_dims(filter, axis=1),
+                                                 strides=self.stride, padding=self.padding)
+                    print("Reached past convolution!")
+                    if sum is None:
+                        sum = addendum
+                    else:
+                        sum += addendum
+                unfolded_w_grad.append(sum)
+            w_gradient = tf.stack(unfolded_w_grad, axis=2)
+
+            """
+            a_paddings = ([2, 0], [0, 0])
             a_gradient_pad = tf.pad(a_gradient, a_paddings, "CONSTANT", constant_values=0)
-            print("a_gradient_size: ", tf.shape(a_gradient_pad))
             filter = tf.expand_dims(a_gradient_pad, axis=0)
             w_gradient = tf.nn.convolution(input=tf.expand_dims(tf.transpose(input), axis=0), filters=filter,
                                            strides=self.stride, padding=self.padding)
-
+            """
             # Compute the x_gradient
             a_gradient = tf.expand_dims(a_gradient, axis=0)
             paddings = ([0, 0], [2, 2], [0, 0])
@@ -156,11 +179,9 @@ class ConvLayer(Layer):
     def backward(self, input, a_gradient, learning_rate):
         x_gradient, w_gradient, b_gradient = self.compute_gradients(input, a_gradient)
 
-        print("------------------------------------------------Gradients of layer ", self.id, "----------------------------")
-        print(w_gradient)
-        print(b_gradient)
-        np.save('../results/Conv_w_gradient_custom.npy', w_gradient.numpy())
-        np.save('../results/Conv_b_gradient_custom.npy', b_gradient.numpy())
+        if SAVE_GRADS:
+            np.save('../results/Conv_w_gradient_custom.npy', w_gradient.numpy())
+            np.save('../results/Conv_b_gradient_custom.npy', b_gradient.numpy())
 
         w_gradient = tf.clip_by_value(w_gradient, -10, 10)
         b_gradient = tf.clip_by_value(b_gradient, -10, 10)
