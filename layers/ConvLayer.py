@@ -10,7 +10,7 @@ import time
 from layers.Layer import Layer
 
 # Temporary global variable, activate when comparing custom and Keras gradients
-SAVE_GRADS = True
+SAVE_GRADS = False
 
 class ConvLayer(Layer):
     def __init__(self,
@@ -89,17 +89,16 @@ class ConvLayer(Layer):
                     dwcn_dwn[0, c] = 1
                     dwcn_dwn = tf.convert_to_tensor(dwcn_dwn, dtype=float)
                     filter = tf.matmul(tf.expand_dims(a_gradient[:, n], axis=1), dwcn_dwn)
-                    print("Reached before convolution!")
-                    addendum = tf.nn.convolution(input=tf.expand_dims(input[:, c], axis=1),
+                    addendum = tf.nn.convolution(input=tf.expand_dims(tf.expand_dims(input[:, c], axis=1), axis=0),
                                                  filters=tf.expand_dims(filter, axis=1),
                                                  strides=self.stride, padding=self.padding)
-                    print("Reached past convolution!")
                     if sum is None:
                         sum = addendum
                     else:
                         sum += addendum
                 unfolded_w_grad.append(sum)
-            w_gradient = tf.stack(unfolded_w_grad, axis=2)
+            w_gradient = tf.stack(unfolded_w_grad, axis=3)
+            w_gradient = tf.squeeze(w_gradient)
 
             """
             a_paddings = ([2, 0], [0, 0])

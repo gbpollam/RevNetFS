@@ -4,7 +4,7 @@ import numpy as np
 from layers.Layer import Layer
 
 # Temporary global variable, activate when comparing custom and Keras gradients
-SAVE_GRADS = True
+SAVE_GRADS = False
 
 class FCLayer(Layer):
     def __init__(self,
