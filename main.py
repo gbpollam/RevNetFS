@@ -64,7 +64,6 @@ def main():
     model.add(FCLayer(units=6, input_dim=64))
     model.add(ActivationLayer('softmax'))
 
-
     model.set_loss(tf.keras.losses.BinaryCrossentropy())
 
     model.fit(x_train, y_train_hot, batch_size=1, epochs=10, learning_rate=0.01)
@@ -78,7 +77,6 @@ def main():
             true_preds.append(0)
 
     print("Accuracy on test data: ", sum(true_preds)/len(true_preds))
-
 
 
 if __name__ == "__main__":
