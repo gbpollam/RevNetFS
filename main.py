@@ -48,8 +48,8 @@ def main():
     model.add(ActivationLayer('relu'))
     model.add(AvgPool1d(window_size=2))
     model.add(GAPLayer())
-    # model.add(FCLayer(units=50, input_dim=64))
-    # model.add(ActivationLayer('relu'))
+    model.add(FCLayer(units=50, input_dim=64))
+    model.add(ActivationLayer('relu'))
     model.add(FCLayer(units=6, input_dim=128))
     model.add(ActivationLayer('softmax'))
     """

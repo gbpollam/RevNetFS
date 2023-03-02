@@ -19,6 +19,15 @@ def shuffle_data(x_train, y_train):
     return x_train, y_train
 
 
+def new_shuffle_data(x_train, y_train, user_id):
+    indices = tf.range(start=0, limit=tf.shape(x_train)[0], dtype=tf.int32)
+    shuffled_indices = tf.random.shuffle(indices)
+    x_train = tf.gather(x_train, shuffled_indices)
+    y_train = tf.gather(y_train, shuffled_indices)
+    user_id = tf.gather(user_id, shuffled_indices)
+    return x_train, y_train, user_id
+
+
 def convert_to_float(x):
     try:
         return np.float64(x)
@@ -76,6 +85,30 @@ def create_segments_and_labels(df, time_steps, step, label_name):
     labels = np.asarray(labels)
 
     return reshaped_segments, labels
+
+
+def new_create_segments_and_labels(df, time_steps, step, label_name):
+    N_FEATURES = 3
+    segments = []
+    labels = []
+    user_id = []
+    for i in range(0, len(df) - time_steps, step):
+        if (df['user-id'].values[i] == df['user-id'].values[i + time_steps] and
+                df['ActivityEncoded'].values[i] == df['ActivityEncoded'].values[i + time_steps]):
+            xs = df['x-axis'].values[i: i + time_steps]
+            ys = df['y-axis'].values[i: i + time_steps]
+            zs = df['z-axis'].values[i: i + time_steps]
+            # Use the label
+            label = df['ActivityEncoded'].values[i]
+            segments.append([xs, ys, zs])
+            labels.append(label)
+            user_id.append(df['user-id'].values[i])
+
+    # Bring the segments into a better shape
+    reshaped_segments = np.asarray(segments, dtype=np.float32).reshape(-1, time_steps, N_FEATURES)
+    labels = np.asarray(labels)
+
+    return reshaped_segments, labels, user_id
 
 
 def fit_minmax(df_train):
@@ -151,15 +184,19 @@ def prepare_data(file_path, time_periods, step_distance, scaler_type):
     else:
         raise NotImplementedError
 
-    x_train, y_train = create_segments_and_labels(df_train,
+    x_train, y_train, user_id = new_create_segments_and_labels(df_train,
                                                   time_periods,
                                                   step_distance,
                                                   LABEL)
 
-    x_test, y_test = create_segments_and_labels(df_test,
+    x_test, y_test, user_id = new_create_segments_and_labels(df_test,
                                                 time_periods,
                                                 step_distance,
                                                 LABEL)
+
+    print(x_train.shape)
+    print(x_test.shape)
+
 
     # Set input & output dimensions
     num_classes = le.classes_.size

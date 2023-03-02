@@ -1,9 +1,6 @@
 import tensorflow as tf
 import keras
-import pandas as pd
 from keras import layers
-
-from utils.prepare_data import prepare_data
 
 
 class RevLayerKeras(keras.layers.Layer):
